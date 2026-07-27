@@ -58,6 +58,11 @@
   }
   /* звёзды — отдельным слоем НАД артом, но под текстом */
   .sky{position:absolute; inset:0; overflow:hidden; pointer-events:none;}
+  /* 🌌 звёздное небо на ВСЁ окно: пустые поля слева и справа от колонки с содержимым
+     больше не пустые. Слой прибит к окну (fixed), поэтому при прокрутке небо стоит на месте,
+     а страница едет по нему. Содержимое лежит выше — см. z-index у header/main/footer. */
+  .sky-page{position:fixed; inset:0; z-index:0;}
+  header.hero,main,footer{position:relative; z-index:1;}
   .star{
     position:absolute; background:#fff;
     animation:twinkle ease-in-out infinite;
@@ -142,6 +147,33 @@
   }
   .lang button.on{color:var(--gold); border-color:var(--pink);}
 
+  /* ── 📱 ТЕЛЕФОНЫ ────────────────────────────────────────────
+     Главное: кнопка «Скачать» обязана попадать на первый экран без прокрутки.
+     Поэтому шапка ниже, отступы плотнее, шрифты чуть мельче, а плашки с цифрами
+     становятся в две колонки на узком и в одну — на совсем узком. */
+  @media (max-width:560px){
+    body{font-size:20px;}
+    .hero{min-height:min(58vh,420px);}
+    .hero-in{padding:26px 14px 24px;}
+    h1{margin-bottom:9px;}
+    .tag{margin-bottom:18px;}
+    .cta{padding:14px 20px;}
+    main{padding:24px 14px 34px;}
+    .lead{font-size:21px; margin-bottom:24px;}
+    .facts{grid-template-columns:repeat(2,1fr); gap:10px;}
+    .facts li{padding:12px 8px;}
+    .facts b{font-size:14px;}
+    .facts span{font-size:18px;}
+    .links{gap:9px;}
+    .links a{font-size:18px; padding:10px 14px;}
+    .lang{top:9px; right:9px;}
+    footer{font-size:16px; padding-bottom:26px;}
+  }
+  @media (max-width:360px){
+    .facts{grid-template-columns:1fr;}   /* совсем узкий — в один столбец, иначе слова рвутся */
+    .links a{width:100%; text-align:center;}
+  }
+
   /* ⚠️ ЯЗЫК ПЕРЕКЛЮЧАЕТСЯ КЛАССОМ НА <body>, А НЕ НА <html>.
      Наступала: класс висел на корне документа, и правило «скрыть английские блоки»
      совпадало с самим <html> — страница пропадала целиком, белый экран.
@@ -152,6 +184,8 @@
 </style>
 </head>
 <body>
+
+<div class="sky sky-page" id="skyPage"></div>
 
 <header class="hero">
   <div class="hero-bg"></div>
@@ -172,10 +206,12 @@
 </header>
 
 <main>
-  <p class="lead l-ru">Бездна пробудилась и накрыла шесть земель Аэрис. Героиня идёт ей навстречу —
+  <!-- ⚠️ число земель тут НЕ называем дважды: в игре про это разнобой (в интро «шесть земель»,
+       а актов четырнадцать). Оставили одно упоминание — то, что совпадает с игрой. -->
+  <p class="lead l-ru">Бездна пробудилась и захлестнула Аэрис тьмой. Героиня идёт ей навстречу —
     а рядом те, кто согласился идти с ней. Бей нажатием, собирай отряд, расти по древу навыков
     и роняй владык четырнадцати земель.</p>
-  <p class="lead l-en">The Abyss woke and swallowed the six lands of Aeris. A heroine walks out to meet
+  <p class="lead l-en">The Abyss woke and swept darkness across Aeris. A heroine walks out to meet
     it — and beside her walk those who chose to follow. Tap to strike, gather a squad, grow your
     skill tree and topple the lords of fourteen lands.</p>
 
@@ -195,39 +231,42 @@
 </main>
 
 <footer>
-  <span class="l-ru">Игру делает Lumiko · <a href="mailto:luminelumiko@gmail.com">luminelumiko@gmail.com</a></span>
-  <span class="l-en">Made by Lumiko · <a href="mailto:luminelumiko@gmail.com">luminelumiko@gmail.com</a></span>
+  <span class="l-ru">Разработка Lumiko · <a href="mailto:luminelumiko@gmail.com">luminelumiko@gmail.com</a></span>
+  <span class="l-en">Developed by Lumiko · <a href="mailto:luminelumiko@gmail.com">luminelumiko@gmail.com</a></span>
 </footer>
 
 <script>
   /* ✨ Звёзды расставляются скриптом: так они не повторяются узором и каждая мерцает
      в своём такте. Квадратные — чтобы попадать в пиксельную стилистику игры. */
   (function(){
-    var sky=document.getElementById('sky');
-    if(!sky)return;
     var COL=['#ffffff','#ffffff','#ffe9b8','#cdbfff','#8fd8ff','#ff9bd0'];
-    var n=window.innerWidth<520?54:86;
-    var html='';
-    for(var i=0;i<n;i++){
-      var s=Math.random()<0.22?3:2;                    // редкие звёзды чуть крупнее
-      var x=(Math.random()*100).toFixed(2);
-      var y=(Math.random()*100).toFixed(2);
-      var dur=(2.4+Math.random()*4.2).toFixed(2);      // разный такт мерцания
-      var del=(Math.random()*5).toFixed(2);
-      var col=COL[(Math.random()*COL.length)|0];
-      var op=(0.45+Math.random()*0.5).toFixed(2);
-      html+='<i class="star" style="left:'+x+'%;top:'+y+'%;width:'+s+'px;height:'+s+'px;'
-          +'background:'+col+';animation-duration:'+dur+'s;animation-delay:-'+del+'s;opacity:'+op+'"></i>';
+    function fill(el,stars,sparks){
+      if(!el)return;
+      var html='';
+      for(var i=0;i<stars;i++){
+        var s=Math.random()<0.22?3:2;                    // редкие звёзды чуть крупнее
+        var dur=(2.4+Math.random()*4.2).toFixed(2);      // разный такт мерцания
+        html+='<i class="star" style="left:'+(Math.random()*100).toFixed(2)+'%;'
+            +'top:'+(Math.random()*100).toFixed(2)+'%;width:'+s+'px;height:'+s+'px;'
+            +'background:'+COL[(Math.random()*COL.length)|0]+';'
+            +'animation-duration:'+dur+'s;animation-delay:-'+(Math.random()*5).toFixed(2)+'s;'
+            +'opacity:'+(0.45+Math.random()*0.5).toFixed(2)+'"></i>';
+      }
+      for(var j=0;j<sparks;j++){                         // крупные четырёхлучевые искры
+        var sz=(9+Math.random()*7).toFixed(0);
+        html+='<i class="spark" style="left:'+(4+Math.random()*92).toFixed(2)+'%;'
+            +'top:'+(4+Math.random()*90).toFixed(2)+'%;width:'+sz+'px;height:'+sz+'px;'
+            +'animation-duration:'+(3.5+Math.random()*3).toFixed(2)+'s;'
+            +'animation-delay:-'+(Math.random()*5).toFixed(2)+'s"></i>';
+      }
+      el.innerHTML=html;
     }
-    // несколько крупных четырёхлучевых искр
-    for(var j=0;j<6;j++){
-      var sz=(9+Math.random()*7).toFixed(0);
-      html+='<i class="spark" style="left:'+(6+Math.random()*88).toFixed(2)+'%;'
-          +'top:'+(6+Math.random()*76).toFixed(2)+'%;width:'+sz+'px;height:'+sz+'px;'
-          +'animation-duration:'+(3.5+Math.random()*3).toFixed(2)+'s;'
-          +'animation-delay:-'+(Math.random()*5).toFixed(2)+'s"></i>';
-    }
-    sky.innerHTML=html;
+    // небо на всё окно: плотность по площади, чтобы на широком мониторе не было пусто,
+    // а на телефоне не сыпалось лишнего (там небо почти целиком закрыто содержимым)
+    var area=(window.innerWidth*window.innerHeight)/1000000;   // в «мегапикселях» экрана
+    var pageStars=Math.max(40,Math.min(220,Math.round(area*150)));
+    fill(document.getElementById('skyPage'),pageStars,Math.max(3,Math.round(area*5)));
+    fill(document.getElementById('sky'),window.innerWidth<520?54:86,6);
   })();
 
   // язык: запоминаем выбор, по умолчанию — язык браузера
