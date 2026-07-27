@@ -30,16 +30,18 @@
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:var(--void); color:var(--text);
+    /* тёмно-фиолетовая ночь на всю страницу */
+    background:#150a28;
+    color:var(--text);
     font-family:'VT323',ui-monospace,monospace; font-size:21px; line-height:1.5;
     min-height:100vh; display:flex; flex-direction:column; align-items:center;
     text-rendering:optimizeLegibility;
   }
 
-  /* ── шапка с артом заставки ───────────────────────────────── */
+  /* ── шапка: арт заставки + мерцающие звёзды поверх ─────────── */
   .hero{
     position:relative; width:100%; max-width:760px;
-    min-height:min(74vh,560px);
+    min-height:min(68vh,520px);
     display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
     overflow:hidden;
     border-bottom:2px solid var(--edge);
@@ -48,37 +50,44 @@
     position:absolute; inset:0;
     background:url(splash.png) center/cover no-repeat;
     image-rendering:pixelated;
-    filter:saturate(1.05);
   }
-  /* затемнение снизу, чтобы текст читался поверх арта */
+  /* затемнение снизу, чтобы заголовок и кнопка читались поверх арта */
   .hero-bg::after{
     content:''; position:absolute; inset:0;
     background:linear-gradient(180deg,rgba(20,10,36,.15) 0%,rgba(20,10,36,.55) 55%,var(--void) 100%);
   }
-  .hero-in{position:relative; z-index:1; text-align:center; padding:0 18px 26px; width:100%;}
+  /* звёзды — отдельным слоем НАД артом, но под текстом */
+  .sky{position:absolute; inset:0; overflow:hidden; pointer-events:none;}
+  .star{
+    position:absolute; background:#fff;
+    animation:twinkle ease-in-out infinite;
+    will-change:opacity;
+  }
+  @keyframes twinkle{0%,100%{opacity:.12;} 50%{opacity:1;}}
+  /* крупные четырёхлучевые искры — как в арте игры */
+  .spark{position:absolute; pointer-events:none; animation:twinkle ease-in-out infinite;}
+  .spark::before,.spark::after{
+    content:''; position:absolute; background:#fff0b0; border-radius:1px;
+  }
+  .spark::before{left:50%; top:0; width:2px; height:100%; transform:translateX(-50%);}
+  .spark::after{top:50%; left:0; height:2px; width:100%; transform:translateY(-50%);}
+  @media (prefers-reduced-motion:reduce){
+    .star,.spark{animation:none; opacity:.75;}
+  }
+
+  .hero-in{position:relative; z-index:1; text-align:center; padding:34px 18px 30px; width:100%;}
 
   h1{
     font-family:'Press Start 2P',monospace;
     font-size:clamp(19px,5.2vw,38px); line-height:1.35;
-    margin:0 0 10px; color:var(--gold);
-    text-shadow:-2px 0 0 #1a0a2e,2px 0 0 #1a0a2e,0 -2px 0 #1a0a2e,0 2px 0 #1a0a2e,0 4px 12px rgba(10,5,20,.95);
+    margin:0 0 12px; color:var(--gold);
+    text-shadow:-2px 0 0 #1a0a2e,2px 0 0 #1a0a2e,0 -2px 0 #1a0a2e,0 2px 0 #1a0a2e,0 0 22px rgba(255,209,102,.35);
   }
   .tag{
     font-family:'Press Start 2P',monospace;
     font-size:clamp(8px,2.1vw,11px); color:var(--pink2); letter-spacing:.5px;
-    margin:0 0 20px; text-shadow:0 2px 6px rgba(10,5,20,.9);
+    margin:0 0 24px; text-shadow:0 2px 6px rgba(10,5,20,.9);
   }
-
-  /* ── идущая героиня (тот же лист кадров, что на заставке игры) ── */
-  .walker{
-    width:64px; height:94px; margin:0 auto 16px;
-    background:url(hero.png) 0 0/500% 100% no-repeat;
-    image-rendering:pixelated;
-    animation:walk .9s steps(5,jump-none) infinite;
-    filter:drop-shadow(0 3px 5px rgba(0,0,0,.55));
-  }
-  @keyframes walk{to{background-position:100% 0;}}
-  @media (prefers-reduced-motion:reduce){.walker{animation:none;}}
 
   /* ── кнопки ───────────────────────────────────────────────── */
   .cta{
@@ -125,10 +134,7 @@
   footer a{color:#9d86c9;}
 
   /* переключатель языка */
-  .lang{
-    position:absolute; top:12px; right:12px; z-index:2;
-    display:flex; gap:6px;
-  }
+  .lang{position:absolute; top:12px; right:12px; z-index:2; display:flex; gap:6px;}
   .lang button{
     font-family:'Press Start 2P',monospace; font-size:9px; cursor:pointer;
     background:rgba(29,15,51,.82); color:var(--muted);
@@ -139,8 +145,7 @@
   /* ⚠️ ЯЗЫК ПЕРЕКЛЮЧАЕТСЯ КЛАССОМ НА <body>, А НЕ НА <html>.
      Наступала: класс висел на корне документа, и правило «скрыть английские блоки»
      совпадало с самим <html> — страница пропадала целиком, белый экран.
-     display:revert возвращает элементу его обычное поведение (абзац блоком, span строкой),
-     поэтому одно правило годится и для абзацев, и для надписей внутри кнопок. */
+     display:revert возвращает элементу его обычное поведение (абзац блоком, span строкой). */
   .l-en{display:none;}
   body.en .l-ru{display:none;}
   body.en .l-en{display:revert;}
@@ -150,12 +155,12 @@
 
 <header class="hero">
   <div class="hero-bg"></div>
+  <div class="sky" id="sky"></div>
   <div class="lang">
     <button id="bRu" class="on">РУС</button>
     <button id="bEn">ENG</button>
   </div>
   <div class="hero-in">
-    <div class="walker"></div>
     <h1>Ellia's Phantasm</h1>
     <p class="tag l-ru">Пиксельная тап-RPG</p>
     <p class="tag l-en">A pixel tap-RPG</p>
@@ -195,6 +200,36 @@
 </footer>
 
 <script>
+  /* ✨ Звёзды расставляются скриптом: так они не повторяются узором и каждая мерцает
+     в своём такте. Квадратные — чтобы попадать в пиксельную стилистику игры. */
+  (function(){
+    var sky=document.getElementById('sky');
+    if(!sky)return;
+    var COL=['#ffffff','#ffffff','#ffe9b8','#cdbfff','#8fd8ff','#ff9bd0'];
+    var n=window.innerWidth<520?54:86;
+    var html='';
+    for(var i=0;i<n;i++){
+      var s=Math.random()<0.22?3:2;                    // редкие звёзды чуть крупнее
+      var x=(Math.random()*100).toFixed(2);
+      var y=(Math.random()*100).toFixed(2);
+      var dur=(2.4+Math.random()*4.2).toFixed(2);      // разный такт мерцания
+      var del=(Math.random()*5).toFixed(2);
+      var col=COL[(Math.random()*COL.length)|0];
+      var op=(0.45+Math.random()*0.5).toFixed(2);
+      html+='<i class="star" style="left:'+x+'%;top:'+y+'%;width:'+s+'px;height:'+s+'px;'
+          +'background:'+col+';animation-duration:'+dur+'s;animation-delay:-'+del+'s;opacity:'+op+'"></i>';
+    }
+    // несколько крупных четырёхлучевых искр
+    for(var j=0;j<6;j++){
+      var sz=(9+Math.random()*7).toFixed(0);
+      html+='<i class="spark" style="left:'+(6+Math.random()*88).toFixed(2)+'%;'
+          +'top:'+(6+Math.random()*76).toFixed(2)+'%;width:'+sz+'px;height:'+sz+'px;'
+          +'animation-duration:'+(3.5+Math.random()*3).toFixed(2)+'s;'
+          +'animation-delay:-'+(Math.random()*5).toFixed(2)+'s"></i>';
+    }
+    sky.innerHTML=html;
+  })();
+
   // язык: запоминаем выбор, по умолчанию — язык браузера
   var B=document.body, H=document.documentElement, KEY='ep_site_lang';
   function setLang(l){
