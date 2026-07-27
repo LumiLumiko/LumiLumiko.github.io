@@ -3,27 +3,212 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lumiko</title>
+<title>Ellia's Phantasm</title>
+<meta name="description" content="Пиксельная тап-RPG про героиню и её напарниц. 14 земель, 49 напарниц, бесконечный Морской Атлас.">
+<meta property="og:title" content="Ellia's Phantasm">
+<meta property="og:description" content="Пиксельная тап-RPG про героиню и её напарниц.">
+<meta property="og:image" content="https://lumilumiko.github.io/splash.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="splash.png">
 <style>
-  html,body{height:100%;margin:0;background:#140a24;color:#e8dcff;
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-    display:flex;align-items:center;justify-content:center;text-align:center;}
-  .box{padding:28px;max-width:520px;}
-  h1{font-size:26px;margin:0 0 6px;color:#ff9bd0;}
-  p{margin:8px 0;line-height:1.6;color:#c3b3e0;}
-  a{color:#8fd8ff;text-decoration:none;border-bottom:1px solid #8fd8ff55;}
-  a:hover{border-bottom-color:#8fd8ff;}
+  @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;
+    src:url(fonts/ps2p-cyrillic.woff2) format('woff2');
+    unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}
+  @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;
+    src:url(fonts/ps2p-latin.woff2) format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+2122,U+2191,U+2193,U+2212,U+2215;}
+  @font-face{font-family:'VT323';font-style:normal;font-weight:400;font-display:swap;
+    src:url(fonts/vt323-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+1E00-1EFF,U+2020,U+20A0-20AB;}
+  @font-face{font-family:'VT323';font-style:normal;font-weight:400;font-display:swap;
+    src:url(fonts/vt323-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+2000-206F,U+2122;}
+
+  :root{
+    --void:#140a24; --void2:#1d0f33; --edge:#3a2358;
+    --pink:#ff6ec7; --pink2:#ff9bd0; --sky:#8fd8ff; --gold:#ffd166;
+    --text:#ede4ff; --muted:#a892cc;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--void); color:var(--text);
+    font-family:'VT323',ui-monospace,monospace; font-size:21px; line-height:1.5;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ── шапка с артом заставки ───────────────────────────────── */
+  .hero{
+    position:relative; width:100%; max-width:760px;
+    min-height:min(74vh,560px);
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+    overflow:hidden;
+    border-bottom:2px solid var(--edge);
+  }
+  .hero-bg{
+    position:absolute; inset:0;
+    background:url(splash.png) center/cover no-repeat;
+    image-rendering:pixelated;
+    filter:saturate(1.05);
+  }
+  /* затемнение снизу, чтобы текст читался поверх арта */
+  .hero-bg::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg,rgba(20,10,36,.15) 0%,rgba(20,10,36,.55) 55%,var(--void) 100%);
+  }
+  .hero-in{position:relative; z-index:1; text-align:center; padding:0 18px 26px; width:100%;}
+
+  h1{
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(19px,5.2vw,38px); line-height:1.35;
+    margin:0 0 10px; color:var(--gold);
+    text-shadow:-2px 0 0 #1a0a2e,2px 0 0 #1a0a2e,0 -2px 0 #1a0a2e,0 2px 0 #1a0a2e,0 4px 12px rgba(10,5,20,.95);
+  }
+  .tag{
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(8px,2.1vw,11px); color:var(--pink2); letter-spacing:.5px;
+    margin:0 0 20px; text-shadow:0 2px 6px rgba(10,5,20,.9);
+  }
+
+  /* ── идущая героиня (тот же лист кадров, что на заставке игры) ── */
+  .walker{
+    width:64px; height:94px; margin:0 auto 16px;
+    background:url(hero.png) 0 0/500% 100% no-repeat;
+    image-rendering:pixelated;
+    animation:walk .9s steps(5,jump-none) infinite;
+    filter:drop-shadow(0 3px 5px rgba(0,0,0,.55));
+  }
+  @keyframes walk{to{background-position:100% 0;}}
+  @media (prefers-reduced-motion:reduce){.walker{animation:none;}}
+
+  /* ── кнопки ───────────────────────────────────────────────── */
+  .cta{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:'Press Start 2P',monospace; font-size:clamp(9px,2.2vw,12px);
+    padding:15px 26px; border-radius:12px; text-decoration:none;
+    color:#1a0a2e; background:linear-gradient(180deg,var(--pink2),var(--pink));
+    border:2px solid #ffd0ea; box-shadow:0 4px 0 #a33c7d,0 0 24px rgba(255,110,199,.45);
+    transition:transform .12s ease,box-shadow .12s ease;
+  }
+  .cta:hover{transform:translateY(-2px); box-shadow:0 6px 0 #a33c7d,0 0 32px rgba(255,110,199,.6);}
+  .cta:active{transform:translateY(2px); box-shadow:0 2px 0 #a33c7d;}
+
+  /* ── тело страницы ────────────────────────────────────────── */
+  main{width:100%; max-width:760px; padding:30px 20px 44px;}
+  .lead{color:var(--muted); text-align:center; max-width:560px; margin:0 auto 30px; font-size:23px;}
+
+  .facts{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
+    gap:12px; margin:0 0 34px; padding:0; list-style:none;
+  }
+  .facts li{
+    background:var(--void2); border:2px solid var(--edge); border-radius:12px;
+    padding:14px 12px; text-align:center;
+  }
+  .facts b{
+    display:block; font-family:'Press Start 2P',monospace; font-size:15px;
+    color:var(--sky); margin-bottom:7px;
+  }
+  .facts span{color:var(--muted); font-size:19px;}
+
+  .links{display:flex; flex-wrap:wrap; gap:11px; justify-content:center;}
+  .links a{
+    color:var(--text); text-decoration:none; font-size:19px;
+    background:var(--void2); border:2px solid var(--edge); border-radius:10px;
+    padding:11px 17px; transition:border-color .15s ease,color .15s ease;
+  }
+  .links a:hover{border-color:var(--pink); color:var(--pink2);}
+
+  footer{
+    width:100%; max-width:760px; padding:0 20px 34px;
+    color:#7a68a0; font-size:17px; text-align:center;
+  }
+  footer a{color:#9d86c9;}
+
+  /* переключатель языка */
+  .lang{
+    position:absolute; top:12px; right:12px; z-index:2;
+    display:flex; gap:6px;
+  }
+  .lang button{
+    font-family:'Press Start 2P',monospace; font-size:9px; cursor:pointer;
+    background:rgba(29,15,51,.82); color:var(--muted);
+    border:2px solid var(--edge); border-radius:8px; padding:7px 9px;
+  }
+  .lang button.on{color:var(--gold); border-color:var(--pink);}
+
+  /* ⚠️ ЯЗЫК ПЕРЕКЛЮЧАЕТСЯ КЛАССОМ НА <body>, А НЕ НА <html>.
+     Наступала: класс висел на корне документа, и правило «скрыть английские блоки»
+     совпадало с самим <html> — страница пропадала целиком, белый экран.
+     display:revert возвращает элементу его обычное поведение (абзац блоком, span строкой),
+     поэтому одно правило годится и для абзацев, и для надписей внутри кнопок. */
+  .l-en{display:none;}
+  body.en .l-ru{display:none;}
+  body.en .l-en{display:revert;}
 </style>
 </head>
 <body>
-  <div class="box">
-    <h1>Ellia's Phantasm</h1>
-    <p>Пиксельная тап-RPG про героиню и её напарниц.</p>
-    <p>
-      <a href="https://play.google.com/store/apps/details?id=com.lumiko.elliasphantasm">Скачать в Google&nbsp;Play</a><br>
-      <a href="/Ellia-s-DOCS/wiki/">Вики игры</a><br>
-      <a href="/Ellia-s-DOCS/privacy.html">Политика конфиденциальности</a>
-    </p>
+
+<header class="hero">
+  <div class="hero-bg"></div>
+  <div class="lang">
+    <button id="bRu" class="on">РУС</button>
+    <button id="bEn">ENG</button>
   </div>
+  <div class="hero-in">
+    <div class="walker"></div>
+    <h1>Ellia's Phantasm</h1>
+    <p class="tag l-ru">Пиксельная тап-RPG</p>
+    <p class="tag l-en">A pixel tap-RPG</p>
+    <a class="cta" href="https://play.google.com/store/apps/details?id=com.lumiko.elliasphantasm">
+      <span class="l-ru">Скачать в Google Play</span>
+      <span class="l-en">Get it on Google Play</span>
+    </a>
+  </div>
+</header>
+
+<main>
+  <p class="lead l-ru">Бездна пробудилась и накрыла шесть земель Аэрис. Героиня идёт ей навстречу —
+    а рядом те, кто согласился идти с ней. Бей нажатием, собирай отряд, расти по древу навыков
+    и роняй владык четырнадцати земель.</p>
+  <p class="lead l-en">The Abyss woke and swallowed the six lands of Aeris. A heroine walks out to meet
+    it — and beside her walk those who chose to follow. Tap to strike, gather a squad, grow your
+    skill tree and topple the lords of fourteen lands.</p>
+
+  <ul class="facts">
+    <li><b>49</b><span class="l-ru">напарниц, у каждой своя механика</span><span class="l-en">companions, each with her own mechanic</span></li>
+    <li><b>14</b><span class="l-ru">земель и 700 этапов пути</span><span class="l-en">lands across 700 stages</span></li>
+    <li><b>105</b><span class="l-ru">узлов древа навыков</span><span class="l-en">skill-tree nodes</span></li>
+    <!-- ⚠️ только цифры и латиница: в пиксельном шрифте нет знака бесконечности, он рисовался пустым квадратом -->
+    <li><b>16</b><span class="l-ru">тиров Морского Атласа — он не кончается</span><span class="l-en">Naval Atlas tiers — it never ends</span></li>
+  </ul>
+
+  <div class="links">
+    <a href="/Ellia-s-DOCS/wiki/"><span class="l-ru">📖 Вики игры</span><span class="l-en">📖 Game wiki</span></a>
+    <a href="https://discord.gg/3kmwndVYQw"><span class="l-ru">💬 Discord</span><span class="l-en">💬 Discord</span></a>
+    <a href="/Ellia-s-DOCS/privacy.html"><span class="l-ru">🔒 Конфиденциальность</span><span class="l-en">🔒 Privacy policy</span></a>
+  </div>
+</main>
+
+<footer>
+  <span class="l-ru">Игру делает Lumiko · <a href="mailto:luminelumiko@gmail.com">luminelumiko@gmail.com</a></span>
+  <span class="l-en">Made by Lumiko · <a href="mailto:luminelumiko@gmail.com">luminelumiko@gmail.com</a></span>
+</footer>
+
+<script>
+  // язык: запоминаем выбор, по умолчанию — язык браузера
+  var B=document.body, H=document.documentElement, KEY='ep_site_lang';
+  function setLang(l){
+    B.classList.toggle('en', l==='en');   // класс на body — см. примечание в стилях
+    H.lang = (l==='en') ? 'en' : 'ru';
+    document.getElementById('bRu').classList.toggle('on', l!=='en');
+    document.getElementById('bEn').classList.toggle('on', l==='en');
+    try{ localStorage.setItem(KEY,l); }catch(e){}
+  }
+  var saved=null; try{ saved=localStorage.getItem(KEY); }catch(e){}
+  setLang(saved || ((navigator.language||'ru').slice(0,2)==='ru' ? 'ru' : 'en'));
+  document.getElementById('bRu').onclick=function(){setLang('ru');};
+  document.getElementById('bEn').onclick=function(){setLang('en');};
+</script>
+
 </body>
 </html>
